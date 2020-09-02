@@ -1,13 +1,38 @@
 import axios from "axios"
 import qs from "qs"
-
+import store from "../store"
+import router from "../router"
+import {warningAlert} from "./alert"
 let baseUrl = "/api"
+
+//请求拦截
+axios.interceptors.request.use(config => {
+    if (config.url == baseUrl + "/api/userlogin") {
+        return config
+    }
+    config.headers.authorization = store.state.user.info.token;
+    return config;
+})
 
 //响应拦截
 axios.interceptors.response.use(res => {
     console.group("======本次请求的地址是" + res.config.url + "=========");
     console.log(res);
     console.groupEnd();
+
+    console.log(res.config.url);
+    
+    // if (res.config.url == "/api/api/rolelist") {
+    //     res.data.msg = "登录已过期或访问权限受限"
+    // }
+
+    if (res.data.msg === "登录已过期或访问权限受限") {
+        warningAlert("登录已过期或访问权限受限")
+        //清空info
+        store.dispatch("user/changeInfoAction", {})
+        //跳转到登录 
+        router.push("/login")
+    }
     return res;
 })
 
@@ -247,7 +272,7 @@ export const reqSpecsAdd = (form) => {
     return axios({
         url: baseUrl + "/api/specsadd",
         method: "post",
-        data:qs.stringify(form)
+        data: qs.stringify(form)
     })
 }
 
@@ -282,7 +307,7 @@ export const reqSpecsUpdate = (form) => {
     return axios({
         url: baseUrl + "/api/specsedit",
         method: "post",
-        data:qs.stringify(form)
+        data: qs.stringify(form)
     })
 }
 
@@ -406,6 +431,50 @@ export const reqGoodsUpdate = (form) => {
 export const reqGoodsDel = (params) => {
     return axios({
         url: baseUrl + "/api/goodsdelete",
+        method: "post",
+        data: qs.stringify(params)
+    })
+}
+
+//秒杀添加
+export const reqSeckAdd = (form) => {
+    return axios({
+        url: baseUrl + "/api/seckadd",
+        method: "post",
+        data:qs.stringify(form)
+    })
+}
+
+//秒杀列表
+export const reqSeckList = () => {
+    return axios({
+        url: baseUrl + "/api/secklist",
+        method: "get",
+    })
+}
+
+//秒杀详情
+export const reqSeckDetail = (params) => {
+    return axios({
+        url: baseUrl + "/api/seckinfo",
+        method: "get",
+        params
+    })
+}
+
+//秒杀修改
+export const reqSeckUpdate = (form) => {
+    return axios({
+        url: baseUrl + "/api/seckedit",
+        method: "post",
+        data:qs.stringify(form)
+    })
+}
+
+//秒杀删除 params={id:1}
+export const reqSeckDel = (params) => {
+    return axios({
+        url: baseUrl + "/api/seckdelete",
         method: "post",
         data: qs.stringify(params)
     })

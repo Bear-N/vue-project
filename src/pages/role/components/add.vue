@@ -37,7 +37,8 @@ import {
 export default {
   computed: {
     ...mapGetters({
-      menuList: "menu/list"
+      menuList: "menu/list",
+      user:"user/info"
     })
   },
   props: ["info"],
@@ -55,7 +56,8 @@ export default {
   methods: {
     ...mapActions({
       reqMenuList: "menu/reqListAction",
-      reqRoleList: "role/reqListAction"
+      reqRoleList: "role/reqListAction",
+      changeInfoAction:"user/changeInfoAction"
     }),
     //点击取消
     cancel() {
@@ -113,9 +115,15 @@ export default {
       reqRoleUpdate(this.form).then(res => {
         if (res.data.code == 200) {
           successAlert("修改成功");
+          if(this.form.id==this.user.roleid){
+            this.changeInfoAction({})
+            this.$router.replace("/login")
+            return
+          }
           this.cancel();
           this.empty();
           this.reqRoleList();
+          
         } else {
           warningAlert(res.data.msg);
         }
@@ -125,7 +133,7 @@ export default {
   mounted() {
     if (this.menuList.length == 0) {
       this.reqMenuList();
-    }
+    };
   }
 };
 </script>

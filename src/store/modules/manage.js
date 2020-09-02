@@ -24,7 +24,10 @@ const mutations = {
 const actions = {
     //请求列表
     reqListAction(context) {
-        reqUserList({ size: context.state.size, page: context.state.page }).then(res => {
+        reqUserList({
+            page: context.state.page,
+            size: context.state.size
+        }).then(res => {
             let arr = res.data.list ? res.data.list : []
             context.commit("changeList", arr)
         })
@@ -42,7 +45,7 @@ const actions = {
     },
     //登录
     reqUserAction(context) {
-        reqUserLogin({ username: context.state.list.username, password: context.state.list.password}).then(res => {
+        reqUserLogin({ username: context.state.list.username, password: context.state.list.password }).then(res => {
             let arr = res.data.list ? res.data.list : []
             context.commit("changeList", arr)
         })

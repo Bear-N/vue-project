@@ -21,8 +21,12 @@ const mutations = {
 }
 
 const actions = {
-    reqListAction(context) {
-        reqGoodsList({ size: context.state.size, page: context.state.page }).then(res => {
+    reqListAction(context,bool) {
+        let params=bool?{}:{
+            page: context.state.page,
+            size: context.state.size
+          }
+        reqGoodsList(params).then(res => {
             let arr = res.data.list ? res.data.list : []
             context.commit("changeList", arr)
         })

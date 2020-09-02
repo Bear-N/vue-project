@@ -1,17 +1,51 @@
 <template>
-<div>
-    seckill
-</div>
+  <div>
+    <!-- 添加按钮 -->
+    <el-button type="primary" @click="willAdd">添加</el-button>
+
+    <!-- 数据列表  -->
+    <v-list @emit="emit($event)"></v-list>
+
+    <!-- 添加弹框 -->
+    <v-add :info="info" @hide="hide" ref="add"></v-add>
+  </div>
 </template>
 <script>
+import vList from "./components/list"
+import vAdd from "./components/add"
 export default {
 components:{
+    vList,
+    vAdd
 },
 data(){
 return {
+    info:{
+        isShow:false,
+        title:"添加活动",
+        isAdd:true
+    }
 }
 },
 methods:{
+    willAdd(){
+        this.info={
+            isShow:true,
+            title:"添加活动",
+            isAdd:true
+        }
+    },
+    hide(){
+        this.info.isShow=false;
+    },
+    emit(id){
+        this.info={
+            isShow:true,
+            title:"修改活动",
+            isAdd:false
+        },
+        this.$refs.add.look(id)
+    }
 },
 mounted(){
 }
