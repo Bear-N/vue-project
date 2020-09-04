@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
-        <el-form-item label="所属角色" :label-width="width">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="所属角色" :label-width="width" prop="roleid">
           <el-select v-model="form.roleid">
             <el-option value label="--请选择--" disabled></el-option>
             <!-- 动态数据 -->
@@ -14,10 +14,10 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="用户名" :label-width="width">
+        <el-form-item label="用户名" :label-width="width" prop="username">
           <el-input v-model="form.username" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码" :label-width="width">
+        <el-form-item label="密码" :label-width="width" prop="password">
           <el-input v-model="form.password" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="状态" :label-width="width">
@@ -57,6 +57,15 @@ export default {
         username: "",
         password: "",
         status: 1
+      },
+      rules: {
+        username: [
+          { required: true, message: "请输入用户名", trigger: "blur" }
+        ],
+        password: [
+          { required: true, message: "请输入密码", trigger: "blur" },
+          { min: 3, max: 12, message: "长度在 3 到 12 个字符", trigger: "blur" }
+        ]
       }
     };
   },
@@ -64,7 +73,7 @@ export default {
     ...mapActions({
       reqRoleList: "role/reqListAction",
       reqUserList: "manage/reqListAction",
-      reqTotal:"manage/reqListNum",
+      reqTotal: "manage/reqListNum",
       changePageAction: "manage/changePageAction"
     }),
     cancel() {
@@ -79,17 +88,30 @@ export default {
       };
     },
     add() {
-      reqUserAdd(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.reqTotal();
-          this.changePageAction(1);
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.roleid == "") {
+        warningAlert("所属角色不能为空");
+      } else if (this.form.username == "") {
+        warningAlert("用户名不能为空");
+      } else if (this.form.password == "") {
+        warningAlert("密码不能为空");
+      } else if (
+        this.form.password.length < 3 ||
+        this.form.password.length > 12
+      ) {
+        warningAlert("长度在3到12个字符");
+      } else {
+        reqUserAdd(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.reqTotal();
+            this.changePageAction(1);
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
@@ -100,22 +122,36 @@ export default {
       });
     },
     update() {
-      reqUserUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          this.reqUserList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.roleid == "") {
+        warningAlert("所属角色不能为空");
+      } else if (this.form.username == "") {
+        warningAlert("用户名不能为空");
+      } else if (this.form.password == "") {
+        warningAlert("密码不能为空");
+      } else if (
+        this.form.password.length < 3 ||
+        this.form.password.length > 12
+      ) {
+        warningAlert("长度在3到12个字符");
+      } else {
+        reqUserUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.reqUserList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
       }
+      this.$refs.form.clearValidate();
     }
   },
   mounted() {

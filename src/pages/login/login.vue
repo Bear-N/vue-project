@@ -2,8 +2,15 @@
   <div class="login">
     <div class="con">
       <h3>登录</h3>
-      <el-input v-model="user.username" placeholder="请输入账号" clearable></el-input>
-      <el-input v-model="user.password" placeholder="请输入密码" clearable show-password></el-input>
+      <el-form :model="user" :rules="rules">
+        <el-form-item prop="username">
+          <el-input v-model="user.username" placeholder="输入账号" clearable></el-input>
+        </el-form-item>
+        <el-form-item prop="password">
+          <el-input v-model="user.password" placeholder="输入密码" clearable show-password></el-input>
+        </el-form-item>
+      </el-form>
+
       <div class="btn-box">
         <el-button type="primary" @click="login">登录</el-button>
       </div>
@@ -13,11 +20,11 @@
 <script>
 import { mapGetters, mapActions } from "vuex";
 import { successAlert, warningAlert } from "../../util/alert";
-import { reqUserLogin } from "../../util/request"
+import { reqUserLogin } from "../../util/request";
 export default {
-  computed:{
+  computed: {
     ...mapGetters({
-      info:"user/info"
+      info: "user/info"
     })
   },
   data() {
@@ -25,30 +32,35 @@ export default {
       user: {
         username: "",
         password: ""
+      },
+      //规则
+      rules: {
+        username: [{ required: true, message: "请输入账号", trigger: "blur" }],
+        password: [
+          { required: true, message: "请输入密码", trigger: "blur" },
+          { min: 3, max: 12, message: "长度在 3 到 12 个字符", trigger: "blur" }
+        ]
       }
     };
   },
   methods: {
     ...mapActions({
-      changeInfoAction:"user/changeInfoAction"
+      changeInfoAction: "user/changeInfoAction"
     }),
     login() {
-      
-      
       reqUserLogin(this.user).then(res => {
         if (res.data.code == 200) {
           successAlert(res.data.msg);
-          this.changeInfoAction(res.data.list)
+          this.changeInfoAction(res.data.list);
           this.$router.push("/");
         } else {
           warningAlert(res.data.msg);
-          console.log(111);
+          this.user={};
         }
       });
     }
   },
-  mounted() {
-  }
+  mounted() {}
 };
 </script>
 <style scoped>

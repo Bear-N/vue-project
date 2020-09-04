@@ -1,7 +1,7 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
+      <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="上级分类" :label-width="width">
           <el-select v-model="form.pid">
             <el-option value label="--请选择--" disabled></el-option>
@@ -10,7 +10,7 @@
             <el-option v-for="item in list" :key="item.id" :label="item.catename" :value="item.id"></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="分类名称" :label-width="width">
+        <el-form-item label="分类名称" :label-width="width" prop="catename">
           <el-input v-model="form.catename" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片" :label-width="width" v-if="form.pid!=0">
@@ -56,6 +56,11 @@ export default {
         catename: "",
         img: null,
         status: 1
+      },
+      rules: {
+        catename: [
+          { required: true, message: "请输入分类名称", trigger: "blur" }
+        ]
       }
     };
   },
@@ -76,8 +81,8 @@ export default {
         warningAlert("请上传正确的图片格式");
         return;
       }
-      this.imgUrl=URL.createObjectURL(file);
-      this.form.img=file;
+      this.imgUrl = URL.createObjectURL(file);
+      this.form.img = file;
     },
     cancel() {
       this.info.isShow = false;
@@ -92,47 +97,55 @@ export default {
       this.imgUrl = "";
     },
     add() {
-      reqCateAdd(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.catename == "") {
+        warningAlert("分类名称不能为空");
+      } else {
+        reqCateAdd(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
     look(id) {
       reqCateDetail({ id: id }).then(res => {
         this.form = res.data.list;
-        this.form.id=id;//
-        this.imgUrl=this.$preImg+res.data.list.img;
+        this.form.id = id; //
+        this.imgUrl = this.$preImg + res.data.list.img;
       });
     },
     update() {
-      reqCateUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.catename == "") {
+        warningAlert("分类名称不能为空");
+      } else {
+        reqCateUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
       }
+      this.$refs.form.clearValidate();
     }
   },
-  mounted() {
-  }
+  mounted() {}
 };
 </script>
 

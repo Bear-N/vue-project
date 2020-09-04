@@ -1,7 +1,12 @@
 <template>
   <div>
-    <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close" @opened="createEditor">
-      <el-form :model="form">
+    <el-dialog
+      :title="info.title"
+      :visible.sync="info.isShow"
+      @closed="close"
+      @opened="createEditor"
+    >
+      <el-form :model="form" :rules="rules" ref="form">
         <el-form-item label="一级分类" :label-width="width">
           <el-select v-model="form.first_cateid" @change="changeFirstId">
             <el-option value label="--请选择--" disabled></el-option>
@@ -26,13 +31,13 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="商品名称" :label-width="width">
+        <el-form-item label="商品名称" :label-width="width" prop="goodsname">
           <el-input v-model="form.goodsname" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="价格" :label-width="width">
+        <el-form-item label="价格" :label-width="width" prop="price">
           <el-input v-model="form.price" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="市场价格" :label-width="width">
+        <el-form-item label="市场价格" :label-width="width" prop="market_price">
           <el-input v-model="form.market_price" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片" :label-width="width">
@@ -123,6 +128,15 @@ export default {
         isnew: 1,
         ishot: 1,
         status: 1
+      },
+      rules: {
+        goodsname: [
+          { required: true, message: "请输入商品名称", trigger: "blur" }
+        ],
+        price: [{ required: true, message: "请输入价格", trigger: "blur" }],
+        market_price: [
+          { required: true, message: "请输入市场价格", trigger: "blur" }
+        ]
       }
     };
   },
@@ -139,7 +153,7 @@ export default {
     createEditor() {
       this.editor = new E("#editor");
       this.editor.create();
-      this.editor.txt.html(this.form.description)
+      this.editor.txt.html(this.form.description);
     },
     //修改一级分类
     changeFirstId() {
@@ -196,18 +210,36 @@ export default {
       this.imgUrl = "";
     },
     add() {
-      this.form.description=this.editor.txt.html();
-      reqGoodsAdd(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.reqTotal();
-          this.changePageAction(1);
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.first_cateid == "") {
+        warningAlert("一级分类不能为空");
+      } else if (this.form.second_cateid == "") {
+        warningAlert("二级分类不能为空");
+      } else if (this.form.goodsname == "") {
+        warningAlert("商品名称不能为空");
+      } else if (this.form.price == "") {
+        warningAlert("价格不能为空");
+      } else if (this.form.market_price == "") {
+        warningAlert("市场价格不能为空");
+      } else if (this.form.img == null) {
+        warningAlert("图片不能为空");
+      } else if (String(this.form.specsid) == "") {
+        warningAlert("商品规格不能为空");
+      } else if (this.form.specsattr == "") {
+        warningAlert("规格属性不能为空");
+      } else {
+        this.form.description = this.editor.txt.html();
+        reqGoodsAdd(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.reqTotal();
+            this.changePageAction(1);
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
@@ -226,23 +258,43 @@ export default {
       });
     },
     update() {
-      this.form.description=this.editor.txt.html();
-      reqGoodsUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          this.changePageAction(1);
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.first_cateid == "") {
+        warningAlert("一级分类不能为空");
+      } else if (this.form.second_cateid == "") {
+        warningAlert("二级分类不能为空");
+      } else if (this.form.goodsname == "") {
+        warningAlert("商品名称不能为空");
+      } else if (this.form.price == "") {
+        warningAlert("价格不能为空");
+      } else if (this.form.market_price == "") {
+        warningAlert("市场价格不能为空");
+      } else if (this.form.img == null) {
+        warningAlert("图片不能为空");
+      } else if (String(this.form.specsid) == "") {
+        warningAlert("商品规格不能为空");
+      } else if (this.form.specsattr == "") {
+        warningAlert("规格属性不能为空");
+      } else {
+        this.form.description = this.editor.txt.html();
+
+        reqGoodsUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.changePageAction(1);
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
       }
+      this.$refs.form.clearValidate();
     }
   },
   mounted() {

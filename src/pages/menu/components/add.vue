@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
-        <el-form-item label="菜单名称" :label-width="width">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="菜单名称" :label-width="width" prop="title">
           <el-input v-model="form.title" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="上级菜单" :label-width="width">
@@ -16,7 +16,7 @@
           <el-radio v-model="form.type" :label="1" disabled>目录</el-radio>
           <el-radio v-model="form.type" :label="2" disabled>菜单</el-radio>
         </el-form-item>
-        <el-form-item label="菜单图标" :label-width="width" v-if="form.type==1">
+        <el-form-item label="菜单图标" :label-width="width" v-if="form.type==1" prop="icon">
           <el-select v-model="form.icon" placeholder="请选择目录图标">
             <el-option value="el-icon-setting">
               <i class="el-icon-setting"></i>
@@ -33,7 +33,7 @@
           </el-select>
           {{form.url}}
         </el-form-item>
-        <el-form-item label="菜单地址" :label-width="width" v-else>
+        <el-form-item label="菜单地址" :label-width="width" v-else prop="url">
           <el-select v-model="form.url">
             <el-option value label="--请选择--" disabled></el-option>
             <el-option
@@ -83,6 +83,10 @@ export default {
         type: 1,
         url: "",
         status: 1
+      },
+      //规则
+      rules: {
+        title: [{ required: true, message: "请输入菜单名称", trigger: "blur" }]
       }
     };
   },
@@ -107,16 +111,24 @@ export default {
       };
     },
     add() {
-      reqAddMenu(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.$emit("hide");
-          this.empty();
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.title == "") {
+        warningAlert("菜单名称不能为空");
+      } else if (this.form.icon == "" && this.form.type == 1) {
+        warningAlert("菜单图标不能为空");
+      } else if (this.form.url == "" && this.form.type == 2) {
+        warningAlert("菜单地址不能为空");
+      } else {
+        reqAddMenu(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.$emit("hide");
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
@@ -127,23 +139,32 @@ export default {
       });
     },
     update() {
-      reqMenuUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();               
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.title == "") {
+        warningAlert("菜单名称不能为空");
+      } else if (this.form.icon == "" && this.form.type == 1) {
+        warningAlert("菜单图标不能为空");
+      } else if (this.form.url == "" && this.form.type == 2) {
+        warningAlert("菜单地址不能为空");
+      } else {
+        reqMenuUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
       }
-    }                                              
+      this.$refs.form.clearValidate();
+    }
   },
   mounted() {}
 };

@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
-        <el-form-item label="规格名称" :label-width="width">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="规格名称" :label-width="width" prop="specsname">
           <el-input v-model="form.specsname" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item
@@ -60,6 +60,11 @@ export default {
         specsname: "",
         attrs: "",
         status: 1
+      },
+      rules: {
+        specsname: [
+          { required: true, message: "请输入规格名称", trigger: "blur" }
+        ]
       }
     };
   },
@@ -90,17 +95,21 @@ export default {
     },
     add() {
       this.form.attrs = JSON.stringify(this.attrArr.map(item => item.value));
-      reqSpecsAdd(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.reqTotal();
-          this.changePageAction(1);
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.specsname == "") {
+        warningAlert("规格名称不能为空");
+      } else {
+        reqSpecsAdd(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.reqTotal();
+            this.changePageAction(1);
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
@@ -114,23 +123,32 @@ export default {
     },
     update() {
       this.form.attrs = JSON.stringify(this.attrArr.map(item => item.value));
-      reqSpecsUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          // this.reqList();
-          this.changePageAction(1);
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      console.log(this.form.attrs.length);
+      
+      if (this.form.specsname == "") {
+        warningAlert("规格名称不能为空");
+      } else {
+        console.log(this.form);
+
+        reqSpecsUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            // this.reqList();
+            this.changePageAction(1);
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
       }
+      this.$refs.form.clearValidate();
     }
   },
   mounted() {}

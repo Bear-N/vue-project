@@ -1,14 +1,14 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
-        <el-form-item label="手机号" :label-width="width">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="手机号" :label-width="width" prop="phone">
           <el-input v-model="form.phone" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="昵称" :label-width="width">
+        <el-form-item label="昵称" :label-width="width" prop="nickname">
           <el-input v-model="form.nickname" autocomplete="off"></el-input>
         </el-form-item>
-        <el-form-item label="密码" :label-width="width">
+        <el-form-item label="密码" :label-width="width" prop="password">
           <el-input v-model="form.password" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="状态" :label-width="width">
@@ -25,10 +25,7 @@
 </template>
 <script>
 import { indexRoutes } from "../../../router";
-import {
-  reqMemberDetail,
-  reqMemberUpdate
-} from "../../../util/request";
+import { reqMemberDetail, reqMemberUpdate } from "../../../util/request";
 import { successAlert, warningAlert } from "../../../util/alert";
 import { mapGetters, mapActions } from "vuex";
 export default {
@@ -47,12 +44,20 @@ export default {
         nickname: "",
         password: "",
         status: 1
+      },
+      rules: {
+        phone: [{ required: true, message: "请输入手机号", trigger: "blur" }],
+        nickname: [{ required: true, message: "请输入昵称", trigger: "blur" }],
+        password: [
+          { required: true, message: "请输入密码", trigger: "blur" },
+          { min: 3, max: 12, message: "长度在 3 到 12 个字符", trigger: "blur" }
+        ]
       }
     };
   },
   methods: {
     ...mapActions({
-      reqList: "member/reqListAction",
+      reqList: "member/reqListAction"
     }),
     cancel() {
       this.info.isShow = false;
@@ -86,16 +91,24 @@ export default {
       });
     },
     update() {
-      reqMemberUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.phone == "") {
+        warningAlert("手机号不能为空");
+      } else if (this.form.nickname == "") {
+        warningAlert("昵称不能为空");
+      }else if (this.form.password == "") {
+        warningAlert("密码不能为空");
+      }  else {
+        reqMemberUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {

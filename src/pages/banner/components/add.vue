@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
-        <el-form-item label="标题" :label-width="width">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="标题" :label-width="width" prop="title">
           <el-input v-model="form.title" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="图片" :label-width="width">
@@ -47,6 +47,9 @@ export default {
         title: "",
         img: null,
         status: 1
+      },
+      rules: {
+        title: [{ required: true, message: "请输入标题", trigger: "blur" }]
       }
     };
   },
@@ -67,8 +70,8 @@ export default {
         warningAlert("请上传正确的图片格式");
         return;
       }
-      this.imgUrl=URL.createObjectURL(file);
-      this.form.img=file;
+      this.imgUrl = URL.createObjectURL(file);
+      this.form.img = file;
     },
     cancel() {
       this.info.isShow = false;
@@ -82,16 +85,22 @@ export default {
       this.imgUrl = "";
     },
     add() {
-      reqBannerAdd(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.title == "") {
+        warningAlert("标题不能为空");
+      } else if (this.form.img == null) {
+        warningAlert("图片不能为空");
+      } else {
+        reqBannerAdd(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
@@ -99,30 +108,36 @@ export default {
       reqBannerDetail({ id: id }).then(res => {
         this.form = res.data.list;
         // this.form.id=id;//
-        this.imgUrl=this.$preImg+res.data.list.img;
+        this.imgUrl = this.$preImg + res.data.list.img;
       });
     },
     update() {
-      reqBannerUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          this.reqList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.title == "") {
+        warningAlert("标题不能为空");
+      } else if (this.form.img == null) {
+        warningAlert("图片不能为空");
+      } else {
+        reqBannerUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.reqList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
       }
+      this.$refs.form.clearValidate();
     }
   },
-  mounted() {
-  }
+  mounted() {}
 };
 </script>
 

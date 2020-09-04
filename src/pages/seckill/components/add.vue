@@ -1,8 +1,8 @@
 <template>
   <div>
     <el-dialog :title="info.title" :visible.sync="info.isShow" @closed="close">
-      <el-form :model="form">
-        <el-form-item label="活动名称" :label-width="width">
+      <el-form :model="form" :rules="rules" ref="form">
+        <el-form-item label="活动名称" :label-width="width" prop="title">
           <el-input v-model="form.title" autocomplete="off"></el-input>
         </el-form-item>
         <el-form-item label="活动期限" :label-width="width">
@@ -15,7 +15,7 @@
             @change="chooseTimeRange"
           ></el-date-picker>
         </el-form-item>
-        <el-form-item label="一级分类" :label-width="width">
+        <el-form-item label="一级分类" :label-width="width" prop="first_cateid">
           <el-select v-model="form.first_cateid" @change="changeFirstId">
             <el-option value label="--请选择--" disabled></el-option>
             <!-- 动态数据 -->
@@ -27,7 +27,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="二级分类" :label-width="width">
+        <el-form-item label="二级分类" :label-width="width" prop="second_cateid">
           <el-select v-model="form.second_cateid" @change="changeSecondId">
             <el-option value label="--请选择--" disabled></el-option>
             <!-- 动态数据 -->
@@ -39,7 +39,7 @@
             ></el-option>
           </el-select>
         </el-form-item>
-        <el-form-item label="商品" :label-width="width">
+        <el-form-item label="商品" :label-width="width" prop="goodsid">
           <el-select v-model="form.goodsid">
             <el-option value label="--请选择--" disabled></el-option>
             <!-- 动态数据 -->
@@ -96,7 +96,10 @@ export default {
         goodsid: "",
         status: 1
       },
-      time: null
+      time: null,
+      rules: {
+        title: [{ required: true, message: "请输入活动名称", trigger: "blur" }]
+      }
     };
   },
   methods: {
@@ -139,16 +142,28 @@ export default {
       this.thiredList = [];
     },
     add() {
-      reqSeckAdd(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert(res.data.msg);
-          this.cancel();
-          this.empty();
-          this.reqSeckList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.title == "") {
+        warningAlert("活动名称不能为空");
+      } else if (this.form.begintime == "" || this.form.endtime == "") {
+        warningAlert("活动期限不能为空");
+      } else if (this.form.first_cateid == "") {
+        warningAlert("一级分类不能为空");
+      } else if (this.form.second_cateid == "") {
+        warningAlert("二级分类不能为空");
+      } else if (this.form.goodsid == "") {
+        warningAlert("商品不能为空");
+      } else {
+        reqSeckAdd(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert(res.data.msg);
+            this.cancel();
+            this.empty();
+            this.reqSeckList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
 
     //查看一条数据
@@ -159,7 +174,7 @@ export default {
           new Date(parseInt(this.form.begintime)),
           new Date(parseInt(this.form.endtime))
         ];
-        this.form.id = id; 
+        this.form.id = id;
         this.secondCateList = this.catelist.find(
           item => item.id == this.form.first_cateid
         ).children;
@@ -169,23 +184,36 @@ export default {
       });
     },
     update() {
-      reqSeckUpdate(this.form).then(res => {
-        if (res.data.code == 200) {
-          successAlert("更新成功");
-          this.$emit("hide");
-          this.empty();
-          this.reqSeckList();
-        } else {
-          warningAlert(res.data.msg);
-        }
-      });
+      if (this.form.title == "") {
+        warningAlert("活动名称不能为空");
+      } else if (this.form.begintime == "" || this.form.endtime == "") {
+        warningAlert("活动期限不能为空");
+      } else if (this.form.first_cateid == "") {
+        warningAlert("一级分类不能为空");
+      } else if (this.form.second_cateid == "") {
+        warningAlert("二级分类不能为空");
+      } else if (this.form.goodsid == "") {
+        warningAlert("商品不能为空");
+      } else {
+        reqSeckUpdate(this.form).then(res => {
+          if (res.data.code == 200) {
+            successAlert("更新成功");
+            this.$emit("hide");
+            this.empty();
+            this.reqSeckList();
+          } else {
+            warningAlert(res.data.msg);
+          }
+        });
+      }
     },
     //弹框关闭完成
     close() {
       if (!this.info.isAdd) {
         this.empty();
-        this.time=[];
+        this.time = [];
       }
+      this.$refs.form.clearValidate();
     },
     //时间
     chooseTimeRange(t) {
