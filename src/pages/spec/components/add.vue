@@ -97,6 +97,8 @@ export default {
       this.form.attrs = JSON.stringify(this.attrArr.map(item => item.value));
       if (this.form.specsname == "") {
         warningAlert("规格名称不能为空");
+      } else if (this.attrArr.length == 1 && this.attrArr[0].value == "") {
+        warningAlert("规格属性不能为空");
       } else {
         reqSpecsAdd(this.form).then(res => {
           if (res.data.code == 200) {
@@ -124,12 +126,12 @@ export default {
     update() {
       this.form.attrs = JSON.stringify(this.attrArr.map(item => item.value));
       console.log(this.form.attrs.length);
-      
+
       if (this.form.specsname == "") {
         warningAlert("规格名称不能为空");
+      } else if (this.attrArr.length == 1 && this.attrArr[0].value == "") {
+        warningAlert("规格属性不能为空");
       } else {
-        console.log(this.form);
-
         reqSpecsUpdate(this.form).then(res => {
           if (res.data.code == 200) {
             successAlert("更新成功");

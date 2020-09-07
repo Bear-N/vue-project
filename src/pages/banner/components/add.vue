@@ -107,7 +107,7 @@ export default {
     look(id) {
       reqBannerDetail({ id: id }).then(res => {
         this.form = res.data.list;
-        // this.form.id=id;//
+        this.form.id=id;
         this.imgUrl = this.$preImg + res.data.list.img;
       });
     },
